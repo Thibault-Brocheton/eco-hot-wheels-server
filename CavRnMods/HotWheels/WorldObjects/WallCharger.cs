@@ -43,7 +43,7 @@
     [Weight(1000)] // Defines how heavy WallCharger is.
     public partial class WallChargerItem : WorldObjectItem<WallChargerObject>
     {
-        protected override OccupancyContext GetOccupancyContext => new SideAttachedContext( 0  | DirectionAxisFlags.Down , WorldObject.GetOccupancyInfo(this.WorldObjectType));
+        protected override OccupancyContext GetOccupancyContext => new SideAttachedContext( 0  | DirectionAxisFlags.Backward , WorldObject.GetOccupancyInfo(this.WorldObjectType));
     }
 
     /// <summary>
