@@ -101,6 +101,7 @@
     [RequireComponent(typeof(PublicStorageComponent))]
     [RequireComponent(typeof(CustomTextComponent))]
     [RequireComponent(typeof(MinimapComponent))]
+    [RequireComponent(typeof(MovableLinkComponent))]
     [RequireComponent(typeof(ModularStockpileComponent))]
     [RequireComponent(typeof(PartsComponent))]
     [RepairRequiresSkill(typeof(BasicEngineeringSkill), 3)]

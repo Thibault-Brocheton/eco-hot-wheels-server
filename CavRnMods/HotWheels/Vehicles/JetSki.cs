@@ -131,7 +131,6 @@
             this.ModsPreInitialize();
             base.Initialize();
             this.GetComponent<VehicleComponent>().HumanPowered(0.75f);
-            this.GetComponent<LinkComponent>().Initialize(8);
             this.GetComponent<PublicStorageComponent>().Initialize(4, 120000);
             this.GetComponent<PublicStorageComponent>().Storage.AddInvRestriction(new NotCarriedRestriction());
             this.GetComponent<MinimapComponent>().InitAsMovable();

@@ -135,7 +135,6 @@
             this.GetComponent<FuelSupplyComponent>().Initialize(1, fuelTagList);
             this.GetComponent<FuelConsumptionComponent>().Initialize(800);
             this.GetComponent<VehicleComponent>().HumanPowered(0.25f);
-            this.GetComponent<LinkComponent>().Initialize(8);
             this.GetComponent<PublicStorageComponent>().Initialize(2, 50000);
             this.GetComponent<PublicStorageComponent>().Storage.AddInvRestriction(new NotCarriedRestriction());
             this.GetComponent<MinimapComponent>().InitAsMovable();
