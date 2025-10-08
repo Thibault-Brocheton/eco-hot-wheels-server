@@ -26,8 +26,8 @@
     [Priority(PriorityAttribute.VeryLow)]
     public class ChargerComponent : BoatMooragePostComponent, IOperatingWorldObjectComponent
     {
-        private StatusElement status;
-        private PowerConsumptionComponent powerConsumptionComponent;
+        private StatusElement? status;
+        private PowerConsumptionComponent? powerConsumptionComponent;
         public override WorldObjectComponentClientAvailability Availability => WorldObjectComponentClientAvailability.Always;
 
         [Serialized] private ThreadSafeList<Guid> attachedVehicleId = new();
@@ -41,7 +41,7 @@
             {
                 if (this.TryGetCar(out var car))
                 {
-                    return $"{car.Parent.DisplayName} is connected, battery at {car.BatteryPercent}%, charging at {this.maxChargeSpeed}W";
+                    return $"{car!.Parent.DisplayName} is connected, battery at {car.BatteryPercent}%, charging at {this.maxChargeSpeed}W";
                 }
 
                 return "No vehicle connected";
@@ -63,7 +63,7 @@
 
             if (this.TryGetCar(out var car))
             {
-                this.ConnectVehicle(car);
+                this.ConnectVehicle(car!);
             }
 
             this.Parent.OnEnableChange.Add(() => {
@@ -71,11 +71,11 @@
                 {
                     if (this.Parent.Enabled)
                     {
-                        car.CurrentChargeSpeed = this.maxChargeSpeed;
+                        car!.CurrentChargeSpeed = this.maxChargeSpeed;
                     }
                     else
                     {
-                        car.CurrentChargeSpeed = 0f;
+                        car!.CurrentChargeSpeed = 0f;
                     }
                 }
             });
@@ -85,11 +85,11 @@
         {
             if (this.TryGetCar(out var car))
             {
-                this.DetachVehicle(car);
+                this.DetachVehicle(car!);
             }
         }
 
-        private ElectricCarComponent ObjectIdToCarComponent(Guid objectId)
+        private ElectricCarComponent? ObjectIdToCarComponent(Guid objectId)
         {
             var carObject = ServiceHolder<IWorldObjectManager>.Obj.GetFromID(objectId);
             return carObject?.GetComponent<ElectricCarComponent>();
@@ -97,7 +97,7 @@
 
         [Autogen, RPC, UITypeName("BigButton")] public void ConnectNearestVehicle(Player player) => this.ConnectNearestVehicleInternal(player, default, default);
 
-        [Interaction(InteractionTrigger.RightClick, "Connect Nearest Vehicle", authRequired: AccessType.FullAccess, AccessForHighlight = AccessType.ConsumerAccess)]
+        [Interaction(InteractionTrigger.RightClick, "Connect Nearest Vehicle", authRequired: AccessType.FullAccess, RequiredAccess = AccessType.ConsumerAccess)]
         public void ConnectNearestVehicleInternal(Player player, InteractionTriggerInfo triggerInfo, InteractionTarget target)
         {
             if (!this.Parent.Enabled)
@@ -114,7 +114,7 @@
 
             foreach (var worldObject in ServiceHolder<IWorldObjectManager>.Obj.GetObjectsWithin(this.Parent.WorldPos(), this.connectRadius))
             {
-                if (worldObject.TryGetComponent<ElectricCarComponent>(out var car) && ServiceHolder<IAuthManager>.Obj.IsAuthorized(car.Parent, player.User) && !car.IsCharging)
+                if (worldObject.TryGetComponent<ElectricCarComponent>(out var car) && ServiceHolder<IAuthManager>.Obj.IsAuthorized(car.Parent, player.User, AccessType.FullAccess, null, out _) && !car.IsCharging)
                 {
                     if (this.autoDetach && car.BatteryPercent >= 100)
                     {
@@ -133,7 +133,7 @@
 
         [Autogen, RPC, UITypeName("BigButton")] public void DisconnectNearestVehicle(Player player) => this.DisconnectVehicleInternal(player, default, default);
 
-        [Interaction(InteractionTrigger.RightClick, "Disconnect Vehicle", modifier: InteractionModifier.Shift, authRequired: AccessType.FullAccess, AccessForHighlight = AccessType.ConsumerAccess)]
+        [Interaction(InteractionTrigger.RightClick, "Disconnect Vehicle", modifier: InteractionModifier.Shift, authRequired: AccessType.FullAccess, RequiredAccess = AccessType.ConsumerAccess)]
         public void DisconnectVehicleInternal(Player player, InteractionTriggerInfo triggerInfo, InteractionTarget target)
         {
             if (!this.HasConnectedVehicle)
@@ -144,7 +144,7 @@
 
             if (this.TryGetCar(out var car))
             {
-                if (!ServiceHolder<IAuthManager>.Obj.IsAuthorized(car.Parent, player.User))
+                if (!ServiceHolder<IAuthManager>.Obj.IsAuthorized(car!.Parent, player.User, AccessType.FullAccess, null, out _))
                 {
                     player.ErrorLocStr("Not authorized to disconnect this vehicle !");
                     return;
@@ -180,7 +180,7 @@
             }
         }
 
-        private bool TryGetCar(out ElectricCarComponent car)
+        private bool TryGetCar(out ElectricCarComponent? car)
         {
             car = null;
 
@@ -206,13 +206,13 @@
             {
                 if (this.Parent.Enabled)
                 {
-                    car.CurrentChargeSpeed = this.maxChargeSpeed;
-                    car.CurrentWatts += this.maxChargeSpeed * deltaTime;
+                    car!.CurrentChargeSpeed = this.maxChargeSpeed;
+                    car.ElectricCarItemData.CurrentWatts += this.maxChargeSpeed * deltaTime;
                 }
 
-                if (car.CurrentWatts >= car.MaxWatts)
+                if (car!.ElectricCarItemData.CurrentWatts >= car.MaxWatts)
                 {
-                    car.CurrentWatts = car.MaxWatts;
+                    car.ElectricCarItemData.CurrentWatts = car.MaxWatts;
 
                     if (this.autoDetach)
                     {
@@ -227,10 +227,10 @@
 
         public override void LateTick()
         {
-            this.status.SetStatusMessage(
+            this.status?.SetStatusMessage(
                 true,
                 this.TryGetCar(out var car)
-                    ? Localizer.DoStr($"{car.Parent.MarkedUpName} is charging, battery is {car.BatteryPercent}%")
+                    ? Localizer.DoStr($"{car!.Parent.MarkedUpName} is charging, battery is {car.BatteryPercent}%")
                     : Localizer.DoStr("No vehicle connected"), Localizer.DoStr("Never")
             );
         }

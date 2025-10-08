@@ -1,4 +1,11 @@
-﻿namespace CavRnMods.HotWheels
+﻿using System.ComponentModel;
+using Eco.Core.Utils;
+using Eco.Gameplay.Items;
+using Eco.Gameplay.Players;
+using Eco.Gameplay.Systems.NewTooltip;
+using Eco.Shared.Items;
+
+namespace CavRnMods.HotWheels
 {
     using Eco.Core.Controller;
     using Eco.Gameplay.Components;
@@ -8,35 +15,61 @@
     using System;
 
     [Serialized]
+    public class ElectricCarItemData : IController, INotifyPropertyChanged, IClearRequestHandler
+    {
+        #region IController
+        public event PropertyChangedEventHandler? PropertyChanged;
+        int            controllerID;
+        public ref int ControllerID => ref this.controllerID;
+        #endregion
+
+        [Serialized, SyncToView] public float CurrentWatts { get; set; }
+
+        public bool HasDataThatCanBeCleared => false;
+
+        public ElectricCarComponent? Parent { get; set; }
+
+        public Result TryHandleClearRequest(Player player)
+        {
+            this.CurrentWatts = 0;
+            return Result.Succeeded;
+        }
+    }
+
+    [Serialized]
     [RequireComponent(typeof(VehicleComponent))]
     [RequireComponent(typeof(StatusComponent))]
-    [CreateComponentTabLoc("Electric Car"), HasIcon("ElectricCarComponent")]
-    public class ElectricCarComponent : WorldObjectComponent
+    public class ElectricCarComponent : WorldObjectComponent, IPersistentData, INotifyPropertyChanged
     {
         public override WorldObjectComponentClientAvailability Availability => WorldObjectComponentClientAvailability.Always;
-        private StatusElement status;
-        private VehicleComponent vehicle;
+        private StatusElement? status;
+        private VehicleComponent? vehicle;
+        [Serialized, SyncToView, NewTooltipChildren(CacheAs.Instance)] public ElectricCarItemData ElectricCarItemData { get; set; } = new();
+
+        public object PersistentData { get => this.ElectricCarItemData; set => this.ElectricCarItemData = value as ElectricCarItemData ?? new ElectricCarItemData(); }
 
         [Notify] public bool IsCharging { get; set; }
         public float CurrentChargeSpeed { get; set; }
-        public float BatteryPercent => (float)Math.Round(this.CurrentWatts / this.MaxWatts * 100, 2);
+        public float BatteryPercent => (float)Math.Round(this.ElectricCarItemData.CurrentWatts / this.MaxWatts * 100, 2);
         private float ConsumptionPerSecond { get; set; }
         public float MaxWatts {  get; private set; }
-        [Serialized, Notify] public float CurrentWatts { get; set; }
 
         public void Initialize(float maxWatts, float joulesPerSecond)
         {
+            this.ElectricCarItemData ??= new ElectricCarItemData();
+            this.ElectricCarItemData.Parent = this;
+
             this.MaxWatts = maxWatts;
             this.ConsumptionPerSecond = joulesPerSecond;
 
             this.status = this.Parent.GetComponent<StatusComponent>().CreateStatusElement();
             this.vehicle = this.Parent.GetComponent<VehicleComponent>();
-            this.vehicle.SetAdditionalDrivableCheck(() => !(this.IsCharging || this.CurrentWatts == 0));
-            this.Subscribe(nameof(this.CurrentWatts), this.NotifyDrivingChange);
+            this.vehicle.SetAdditionalDrivableCheck(() => !(this.IsCharging || this.ElectricCarItemData.CurrentWatts == 0));
+            this.Subscribe(nameof(this.ElectricCarItemData.CurrentWatts), this.NotifyDrivingChange);
             this.Subscribe(nameof(this.IsCharging), this.NotifyDrivingChange);
         }
 
-        void NotifyDrivingChange() => this.vehicle.Changed(nameof(VehicleComponent.Drivable));
+        void NotifyDrivingChange() => this.vehicle?.Changed(nameof(VehicleComponent.Drivable));
 
         public override void Tick() => this.Tick(this.Parent.SimTickDelta());
         public void Tick(float deltaTime)
@@ -45,16 +78,16 @@
 
             if (!this.IsCharging)
             {
-                if (!this.vehicle.IsMoving)
+                if (!this.vehicle!.IsMoving)
                 {
-                    this.CurrentWatts -= this.ConsumptionPerSecond * deltaTime / 432;
+                    this.ElectricCarItemData.CurrentWatts -= this.ConsumptionPerSecond * deltaTime / 432;
                 }
                 else
                 {
-                    this.CurrentWatts -= this.ConsumptionPerSecond * deltaTime;
+                    this.ElectricCarItemData.CurrentWatts -= this.ConsumptionPerSecond * deltaTime;
                 }
 
-                if (this.CurrentWatts <= 0) this.CurrentWatts = 0;
+                if (this.ElectricCarItemData.CurrentWatts <= 0) this.ElectricCarItemData.CurrentWatts = 0;
             }
         }
 
@@ -62,18 +95,18 @@
         {
             if (this.IsCharging)
             {
-                this.vehicle.OutOfFuel = true;
+                this.vehicle!.OutOfFuel = true;
             }
             else
             {
-                this.vehicle.OutOfFuel = this.CurrentWatts == 0;
+                this.vehicle!.OutOfFuel = this.ElectricCarItemData.CurrentWatts == 0;
             }
 
             this.Parent.SetAnimatedState("BatteryPercent", $"{Math.Round(this.BatteryPercent)}%");
             this.Parent.SetAnimatedState("CurrentChargeSpeed", this.CurrentChargeSpeed > 0 ? $"{Math.Round(this.CurrentChargeSpeed / 1000, 1)}kW" : "");
             this.Parent.SetAnimatedState("IsCharging", this.IsCharging);
-            this.status.SetStatusMessage(
-                !(this.IsCharging || this.CurrentWatts == 0),
+            this.status?.SetStatusMessage(
+                !(this.IsCharging || this.ElectricCarItemData.CurrentWatts == 0),
                 Localizer.DoStr($"Battery is ({this.BatteryPercent}%)"),
                 this.IsCharging
                     ? Localizer.DoStr($"Battery is charging... ({this.BatteryPercent}%)")

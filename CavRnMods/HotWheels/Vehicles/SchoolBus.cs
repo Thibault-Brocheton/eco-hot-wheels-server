@@ -32,7 +32,7 @@
     [Ecopedia("Crafted Objects", "Vehicles", createAsSubPage: true)]
     public partial class SchoolBusItem : WorldObjectItem<SchoolBusObject>, IPersistentData
     {
-        [Serialized, SyncToView, NewTooltipChildren(CacheAs.Instance, flags: TTFlags.AllowNonControllerTypeForChildren)] public object PersistentData { get; set; }
+        [Serialized, SyncToView, NewTooltipChildren(CacheAs.Instance, flags: TTFlags.AllowNonControllerTypeForChildren)] public object? PersistentData { get; set; }
     }
 
     /// <summary>

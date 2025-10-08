@@ -26,7 +26,7 @@
     [Ecopedia("Crafted Objects", "Vehicles", createAsSubPage: true)]
     public partial class ScooterItem : WorldObjectItem<ScooterObject>, IPersistentData
     {
-        [Serialized, SyncToView, NewTooltipChildren(CacheAs.Instance, flags: TTFlags.AllowNonControllerTypeForChildren)] public object PersistentData { get; set; }
+        [Serialized, SyncToView, NewTooltipChildren(CacheAs.Instance, flags: TTFlags.AllowNonControllerTypeForChildren)] public object? PersistentData { get; set; }
     }
 
     /// <summary>

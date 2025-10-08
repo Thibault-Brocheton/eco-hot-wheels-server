@@ -1,7 +1,6 @@
 ﻿namespace CavRnMods.HotWheels
 {
 	using Eco.Gameplay.Components.Storage;
-    //using ScreenPlayers;
     using Eco.Core.Controller;
     using Eco.Core.Items;
     using Eco.Gameplay.Components.Auth;
@@ -31,7 +30,7 @@
     [Ecopedia("Crafted Objects", "Vehicles", createAsSubPage: true)]
     public partial class TeslaModel3Item : WorldObjectItem<TeslaModel3Object>, IPersistentData
     {
-        [Serialized, SyncToView, NewTooltipChildren(CacheAs.Instance, flags: TTFlags.AllowNonControllerTypeForChildren)] public object PersistentData { get; set; }
+        [Serialized, SyncToView, NewTooltipChildren(CacheAs.Instance, flags: TTFlags.AllowNonControllerTypeForChildren)] public object? PersistentData { get; set; }
     }
 
     /// <summary>
@@ -115,7 +114,6 @@
     [RequireComponent(typeof(ElectricCarComponent))]
     [RequireComponent(typeof(MinimapComponent))]
     [RequireComponent(typeof(PartsComponent))]
-    //[RequireComponent(typeof(VideoComponentWithoutInteraction))]
     [RepairRequiresSkill(typeof(ElectronicsSkill), 2)]
     [Ecopedia("Crafted Objects", "Vehicles", subPageName: "TeslaModel3 Item")]
     public partial class TeslaModel3Object : PhysicsWorldObject, IRepresentsItem, IHasInteractions
@@ -140,7 +138,6 @@
             this.GetComponent<MinimapComponent>().SetCategory(Localizer.DoStr("Vehicles"));
             this.GetComponent<VehicleComponent>().Initialize(48, 5, 5);
             this.GetComponent<ElectricCarComponent>().Initialize(5250000, 5000);
-            //this.GetComponent<VideoComponentWithoutInteraction>().Initialize(50, 8);
             this.GetComponent<VehicleComponent>().FailDriveMsg = Localizer.Do($"You are too hungry to drive {this.DisplayName}!");
             {
                 this.GetComponent<PartsComponent>().Config(() => LocString.Empty, new PartInfo[]
@@ -179,17 +176,5 @@
             var isOpened = this.AnimatedStates.GetOrDefault("RearLeftDoor") as bool? ?? false;
             this.SetAnimatedState("RearLeftDoor", !isOpened);
         }
-
-        /*[Interaction(InteractionTrigger.RightClick, "Stop", authRequired: AccessType.ConsumerAccess, requiredEnvVars: new[] { "Screen" })]
-        public void Stop(Player player, InteractionTriggerInfo trigger, InteractionTarget target)
-        {
-            this.GetComponent<VideoComponentWithoutInteraction>().StopInternal();
-        }
-
-        [Interaction(InteractionTrigger.LeftClick, "Play", authRequired: AccessType.ConsumerAccess, requiredEnvVars: new[] { "Screen" })]
-        public void StartOrPause(Player player, InteractionTriggerInfo trigger, InteractionTarget target)
-        {
-            this.GetComponent<VideoComponentWithoutInteraction>().StartOrPauseInternal();
-        }*/
     }
 }

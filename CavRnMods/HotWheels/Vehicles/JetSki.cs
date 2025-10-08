@@ -30,7 +30,7 @@
     {
         public float InteractDistance => DefaultInteractDistance.WaterPlacement;
         public bool ShouldHighlight(Type block) => false;
-        [Serialized, SyncToView, NewTooltipChildren(CacheAs.Instance, flags: TTFlags.AllowNonControllerTypeForChildren)] public object PersistentData { get; set; }
+        [Serialized, SyncToView, NewTooltipChildren(CacheAs.Instance, flags: TTFlags.AllowNonControllerTypeForChildren)] public object? PersistentData { get; set; }
     }
 
     /// <summary>
