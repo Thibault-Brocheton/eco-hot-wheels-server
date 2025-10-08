@@ -39,6 +39,7 @@ namespace CavRnMods.HotWheels
     [Serialized]
     [RequireComponent(typeof(VehicleComponent))]
     [RequireComponent(typeof(StatusComponent))]
+    [NoIcon]
     public class ElectricCarComponent : WorldObjectComponent, IPersistentData, INotifyPropertyChanged
     {
         public override WorldObjectComponentClientAvailability Availability => WorldObjectComponentClientAvailability.Always;
